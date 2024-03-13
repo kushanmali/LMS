@@ -2,16 +2,18 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Providers\RouteServiceProvider;
-use Illuminate\Auth\Events\Registered;
-use Illuminate\Http\RedirectResponse;
+use App\Models\Student;
+use Illuminate\View\View;
+
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rules;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules;
-use Illuminate\View\View;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Auth\Events\Registered;
+use App\Providers\RouteServiceProvider;
 
 class RegisteredUserController extends Controller
 {
@@ -31,16 +33,35 @@ class RegisteredUserController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users'],
+     'password' => ['required', 'confirmed', Rules\Password::defaults()],
+    
+    'phone_number' => ['required', 'string', 'max:12'],
+    
+    'national_id_number' => ['required', 'string', 'max:20', 'unique:students'],
         ]);
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+        ])->assignRole('Student');
+
+        // dd($user);
+
+        $student = Student::create([
+            
+            'phone_number' => $request->phone_number,
+            'user_id' => $user->id,
+            'al_batch' => $request->al_batch,
+            
+            
+            'birthday' => $request->birthday,
+            'address' => $request->address,
+            'national_id_number' => $request->national_id_number,
         ]);
+
+        
 
         event(new Registered($user));
 
